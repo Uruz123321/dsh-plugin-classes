@@ -1,0 +1,10 @@
+# dsh-plugin-classes — bundle patch
+#
+# One host row, whose id matches the package name (the same shape the shipped
+# third-party bundles use). Every plugin class becomes an
+# `@deepseek-ai/dsh-agent-preset` definition at runtime, so this file stays this
+# small: the class roster lives in this entry's own volatile `classes` config,
+# which the Web panel writes through `settings.update`.
+- insert:
+    - id: dsh-plugin-classes
+      name: dsh-plugin-classes
