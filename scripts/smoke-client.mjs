@@ -17,9 +17,19 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+// Resolve React from this package first (installed devDependency), then from a
+// local DSH checkout, so the smoke test runs on a clean clone and in CI alike.
+const requireFromPackage = createRequire(path.join(packageRoot, 'package.json'))
 const requireFromRepo = createRequire('E:/orb-build/merge/packages/client/ui-model-selection/package.json')
-const React = requireFromRepo('react')
-const { renderToStaticMarkup } = requireFromRepo('react-dom/server')
+let React
+let renderToStaticMarkup
+try {
+  React = requireFromPackage('react')
+  ;({ renderToStaticMarkup } = requireFromPackage('react-dom/server'))
+} catch {
+  React = requireFromRepo('react')
+  ;({ renderToStaticMarkup } = requireFromRepo('react-dom/server'))
+}
 
 const source = readFileSync(path.join(packageRoot, 'lib', 'client.js'), 'utf8')
 

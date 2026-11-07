@@ -9,11 +9,13 @@
  */
 import path from 'node:path'
 import process from 'node:process'
+import { existsSync } from 'node:fs'
 import { pathToFileURL, fileURLToPath } from 'node:url'
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-// The host module imports DSH's own services, so it must be loaded from the
-// profile install (where those peers resolve), not from the workspace checkout.
+// Prefer the installed profile copy (where DSH's peer services resolve); fall
+// back to this checkout so the smoke test also runs on a clean clone or in CI
+// after `npm install` provides the peer dependency.
 const installed = path.join(
   process.env.DSH_PROFILE_DIR ?? path.join(process.env.DSH_HOME ?? '', 'profiles', 'desktop'),
   'node_modules',
@@ -21,7 +23,8 @@ const installed = path.join(
   'lib',
   'host2.js',
 )
-const modulePath = process.argv[2] ?? installed
+const local = path.join(packageRoot, 'lib', 'host2.js')
+const modulePath = process.argv[2] ?? (existsSync(installed) ? installed : local)
 const host = await import(pathToFileURL(modulePath).href)
 console.log(`host module: ${modulePath}\n`)
 
