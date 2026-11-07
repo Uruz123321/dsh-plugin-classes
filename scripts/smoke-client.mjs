@@ -17,16 +17,24 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-// Resolve React from this package first (installed devDependency), then from a
-// local DSH checkout, so the smoke test runs on a clean clone and in CI alike.
+// Resolve React from this package first (installed devDependency); on this
+// developer machine fall back to a local DSH checkout. `createRequire` on a
+// foreign absolute path throws outside Windows, so the fallback base is only
+// computed when that checkout is expected to exist.
 const requireFromPackage = createRequire(path.join(packageRoot, 'package.json'))
-const requireFromRepo = createRequire('E:/orb-build/merge/packages/client/ui-model-selection/package.json')
+const repoRequireBase =
+  process.platform === 'win32' ? 'E:/orb-build/merge/packages/client/ui-model-selection/package.json' : null
+
 let React
 let renderToStaticMarkup
 try {
   React = requireFromPackage('react')
   ;({ renderToStaticMarkup } = requireFromPackage('react-dom/server'))
-} catch {
+} catch (error) {
+  if (!repoRequireBase) {
+    throw new Error(`react/react-dom are not installed — run \`npm install\` before this smoke test (${error.message})`)
+  }
+  const requireFromRepo = createRequire(repoRequireBase)
   React = requireFromRepo('react')
   ;({ renderToStaticMarkup } = requireFromRepo('react-dom/server'))
 }
@@ -69,7 +77,7 @@ function loadBundle() {
   const module = { exports: {} }
   const requireStub = (specifier) => {
     if (specifier === 'react') return React
-    if (specifier === 'react-dom') return requireFromRepo('react-dom')
+    if (specifier === 'react-dom') return requireFromPackage('react-dom')
     throw new Error(`client bundle required an unseeded module: ${specifier}`)
   }
   const exported = definition.factory(requireStub)
