@@ -1,0 +1,88 @@
+{
+  "name": "dsh-plugin-classes",
+  "version": "0.1.0",
+  "description": "Plugin classes for DeepSeek Harness: split installed plugins into mutually invisible classes so a session mounts only the plugins it belongs to, switchable from the composer. 插件管理：把已安装插件分成互不可见的插件类，每个会话只加载它所属类里的插件，并在输入框左侧选择。",
+  "type": "module",
+  "main": "lib/host2.js",
+  "exports": {
+    ".": {
+      "default": "./lib/host2.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "cordis",
+    "agent-preset",
+    "plugin-manager",
+    "plugin-classes",
+    "session-isolation",
+    "web"
+  ],
+  "engines": {
+    "node": ">=20.18",
+    "dsh": ">=0.2.0-rc.2 <0.3.0"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    },
+    "compatibility": {
+      "dsh": ">=0.2.0-rc.2 <0.3.0",
+      "node": ">=20.18",
+      "profiles": [
+        "web",
+        "desktop"
+      ],
+      "dshReleases": {
+        "0.1.7-rc.2": "incompatible",
+        "0.1.7-rc.1": "incompatible",
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.1": "unknown",
+        "0.2.1-rc.2": "unknown",
+        "0.2.1-rc.3": "unknown"
+      }
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Uruz123321/dsh-plugin-classes.git"
+  },
+  "homepage": "https://github.com/Uruz123321/dsh-plugin-classes#readme",
+  "bugs": {
+    "url": "https://github.com/Uruz123321/dsh-plugin-classes/issues"
+  },
+  "author": "Uruz123321",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "test": "node scripts/smoke-host.mjs && node scripts/smoke-client.mjs",
+    "check": "node scripts/check-manifest.mjs",
+    "prepublishOnly": "npm test && npm run check"
+  }
+}
