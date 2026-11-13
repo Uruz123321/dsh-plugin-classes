@@ -24,6 +24,8 @@ A class is stored as plain data in the plugin row's **volatile config** inside t
 | Feature | Behavior |
 |---|---|
 | Plugin classes | Named groups with add/remove deltas over the host baseline; a session can select several at once |
+| Classes include classes | A class can list other classes in `include`; they compose before its own delta, so ticking one class selects a whole group. Cycles terminate and a diamond mounts each plugin once — the panel's candidate list already hides ids that would close a cycle |
+| Per-plugin notes | Every plugin row carries an editable one-line note on what the plugin does; saved in the shared `notes` map (keyed by package/row name), so the same text shows wherever that plugin appears. Informational only |
 | Host baseline | Global, always included, not listed for editing; it is the default composition for new sessions (`cls-host`) and holds the base template (`standard`) |
 | Composer chip | A class multi-select chip left of the model selector; toggling a class on a **not-yet-started** session swaps the preset immediately |
 | Class manager panel | Sidebar entry: create / rename / hide classes, tick the plugins a class contains, see unassigned plugins and which sessions use a class |

@@ -174,6 +174,63 @@ fire()
 await settle()
 check('no extra registration for an unchanged composition', registrations.length === before, String(registrations.length))
 
+console.log('\na class may include other classes')
+/** The classes as they stood before this section, restored afterwards. */
+const classesBeforeIncludes = state.classes
+state.classes = [
+  { id: 'alpha', name: '编码', description: '', base: 'standard', include: [], remove: ['tool-web'], add: [{ id: '', name: 'dsh-whale-widget', disabled: false }] },
+  { id: 'gamma', name: '套装', description: '', base: 'standard', include: ['alpha'], remove: [], add: [{ id: '', name: 'dsh-soul-md', disabled: false }] },
+  { id: 'beta', name: '研究', description: '', base: 'standard', include: [], remove: [], add: [{ id: '', name: 'dsh-posterflow-ai', disabled: false }] },
+]
+state.sessions = { 'session-1': ['gamma'] }
+fire()
+await settle()
+check('including class preset registered', live.has('cls-gamma'), JSON.stringify(ids()))
+check('included class is still selectable on its own', live.has('cls-alpha'))
+check('included class removals apply to the including class',
+  !moduleNames('cls-gamma').includes('@deepseek-ai/dsh-tool-web'))
+check('included class additions apply to the including class',
+  moduleNames('cls-gamma').includes('dsh-whale-widget'))
+check('the including class still applies its own addition',
+  moduleNames('cls-gamma').includes('dsh-soul-md'))
+check('including a class needs no re-listing of its plugins',
+  moduleNames('cls-gamma').filter(name => name === 'dsh-whale-widget').length === 1)
+
+console.log('\na cycle composes once instead of recursing')
+state.classes = [
+  { id: 'alpha', name: '编码', description: '', base: 'standard', include: ['gamma'], remove: ['tool-web'], add: [{ id: '', name: 'dsh-whale-widget', disabled: false }] },
+  { id: 'gamma', name: '套装', description: '', base: 'standard', include: ['alpha'], remove: [], add: [{ id: '', name: 'dsh-soul-md', disabled: false }] },
+]
+fire()
+await settle()
+check('a cyclic pair still composes', live.has('cls-alpha') && live.has('cls-gamma'), JSON.stringify(ids()))
+check('each plugin appears once through the cycle',
+  moduleNames('cls-alpha').filter(name => name === 'dsh-whale-widget').length === 1
+  && moduleNames('cls-alpha').filter(name => name === 'dsh-soul-md').length === 1,
+  JSON.stringify(moduleNames('cls-alpha').filter(name => name === 'dsh-whale-widget' || name === 'dsh-soul-md')))
+check('the removal still applies through the cycle',
+  !moduleNames('cls-alpha').includes('@deepseek-ai/dsh-tool-web'))
+
+console.log('\na diamond includes the shared class once')
+state.classes = [
+  { id: 'alpha', name: '编码', description: '', base: 'standard', include: ['base-ish'], remove: [], add: [] },
+  { id: 'beta', name: '研究', description: '', base: 'standard', include: ['base-ish'], remove: [], add: [] },
+  { id: 'base-ish', name: '公共', description: '', base: 'standard', include: [], remove: [], add: [{ id: '', name: 'dsh-whale-widget', disabled: false }] },
+]
+state.sessions = { 'session-1': ['alpha', 'beta'] }
+fire()
+await settle()
+const diamond = host.comboPresetId(['alpha', 'beta'])
+check('diamond combination registered', live.has(diamond), JSON.stringify(ids()))
+check('shared include mounts once',
+  moduleNames(diamond).filter(name => name === 'dsh-whale-widget').length === 1,
+  JSON.stringify(moduleNames(diamond).filter(name => name === 'dsh-whale-widget')))
+
+state.classes = classesBeforeIncludes
+state.sessions = { 'session-1': ['beta', 'alpha'] }
+fire()
+await settle()
+
 console.log('\nhost baseline edit reaches every preset')
 state.host = { base: 'standard', remove: ['tool-skill'], add: [] }
 fire()

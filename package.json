@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-classes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Plugin classes for DeepSeek Harness: split installed plugins into mutually invisible classes so a session mounts only the plugins it belongs to, switchable from the composer. 插件管理：把已安装插件分成互不可见的插件类，每个会话只加载它所属类里的插件，并在输入框左侧选择。",
   "type": "module",
   "main": "lib/host2.js",

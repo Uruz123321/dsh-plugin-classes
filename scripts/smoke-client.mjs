@@ -201,6 +201,33 @@ render('sidebar icon', iconEntry.component, { size: 16, active: true })
 console.log('\nstyles')
 check('stylesheet injected once', styleElements.length === 1, String(styleElements.length))
 check('stylesheet covers the chip', styleElements[0].textContent.includes('.dpc-chip'))
+check('stylesheet covers the plugin note editor', styleElements[0].textContent.includes('.dpc-note-btn'))
+check('stylesheet lets a row wrap so the note sits underneath',
+  styleElements[0].textContent.includes('.dpc-row{display:flex;align-items:center;flex-wrap:wrap;'))
+
+console.log('\nnote editor')
+// The store method is what every surface writes through. Reuse the chip's store
+// instance (its state is plain) and check the lookup + the include guard.
+const storeStub = chipProps.store
+check('chip surface carries the store', storeStub !== undefined)
+storeStub.state = Object.assign({}, storeStub.state, { notes: { '@deepseek-ai/dsh-persona': '人设卡' } })
+check('note lookup returns the stored text',
+  storeStub.noteOf('@deepseek-ai/dsh-persona') === '人设卡', storeStub.noteOf('@deepseek-ai/dsh-persona'))
+check('note lookup returns an empty string for an unknown plugin',
+  storeStub.noteOf('nope') === '')
+
+console.log('\ninclude candidates')
+storeStub.state = Object.assign({}, storeStub.state, {
+  classes: [
+    { id: 'a', name: 'A', include: ['b'] },
+    { id: 'b', name: 'B', include: [] },
+    { id: 'c', name: 'C', include: [] },
+  ],
+})
+const candidates = storeStub.includeCandidates('a').map(pluginClass => pluginClass.id)
+check('a class cannot include itself', !candidates.includes('a'), JSON.stringify(candidates))
+check('a class cannot include something it already reaches', !candidates.includes('b'), JSON.stringify(candidates))
+check('unrelated classes stay available', candidates.includes('c'), JSON.stringify(candidates))
 
 console.log('')
 if (failures.length > 0) {
